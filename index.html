@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แผนผังครอบครัว "ชัชวาลย์" (Family Tree Web App)</title>
+    <title>ระบบรวบญาติ (Family Tree Web App)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,31 +11,49 @@
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; }
         
-        /* ─── บังคับระบบสายตระกูลแบบ Level-Based Tree ─── */
-        .tree-container, .tree-container ul {
-            display: flex;
-            justify-content: center;
-            padding: 0;
-            margin: 0;
-            list-style: none;
+        /* ─── บังคับ Container ให้ Scroll แนวนอนได้ไร้ขีดจำกัด ไม่บีบอัดการ์ด ─── */
+        .tree-board {
+            overflow-x: auto;
+            overflow-y: auto;
+            padding: 60px;
+            background-color: #f8fafc;
+            min-height: 65vh;
+            text-align: center;
+            white-space: nowrap; /* ล็อคไม่ให้กล่องลูกหลานเด้งตกบรรทัด */
         }
+
+        .tree-container {
+            display: inline-block; /* ช่วยให้กระดานขยายตัวตามความกว้างจริงของญาติทั้งหมด */
+            margin: 0 auto;
+        }
+
         .tree-container ul {
             padding-top: 40px;
             position: relative;
+            display: flex;
+            justify-content: center;
+            margin: 0;
+            padding-left: 0;
+            list-style: none;
         }
-        /* เส้นตั้งเชื่อมจากกลุ่มพ่อแม่ลงไปหารุ่นลูก */
+
+        /* เส้นตั้งจากคู่สมรสลงไปหาแกนนอนของลูก */
         .tree-container ul::before {
             content: '';
             position: absolute; top: 0; left: 50%;
             border-left: 2px solid #94a3b8;
             width: 0; height: 40px;
         }
+
         .tree-container li {
             text-align: center;
             position: relative;
             padding: 40px 15px 0 15px;
+            display: inline-block;
+            vertical-align: top;
         }
-        /* เส้นขนานตามแนวราบสำหรับรุ่นลูกใน Level เดียวกัน */
+
+        /* เส้นแนวนอนเชื่อมโยงพี่น้องระดับเดียวกัน */
         .tree-container li::before, .tree-container li::after {
             content: '';
             position: absolute; top: 0; right: 50%;
@@ -52,7 +70,7 @@
         .tree-container li:last-child::before { border-right: 2px solid #94a3b8; border-radius: 0 6px 0 0; }
         .tree-container li:first-child::after { border-radius: 6px 0 0 0; }
 
-        /* บล็อกคู่สมรส: ล็อคให้อยู่ติดกันในระนาบราบแนวนอน 100% (สุรสิงห์ + วไลพร + ดารา จะอยู่ในนี้) */
+        /* บล็อกรวมคู่สมรส (Level เดียวกัน) */
         .couple-wrapper {
             display: inline-flex;
             align-items: flex-start;
@@ -62,8 +80,10 @@
             border-radius: 20px;
             border: 2px dashed #cbd5e1;
             gap: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            white-space: normal; /* ให้ข้อความภายในการ์ดขึ้นบรรทัดใหม่ได้ตามปกติ */
         }
+
         .member-card {
             width: 180px;
             padding: 12px;
@@ -72,6 +92,7 @@
             font-size: 12px;
             transition: all 0.2s;
             background: #fff;
+            display: inline-block;
         }
         .member-card:hover { transform: translateY(-2px); }
         .swal-field { width: 100% !important; margin: 5px 0 !important; }
@@ -133,22 +154,21 @@
     <main class="flex-grow p-4 md:p-6 container mx-auto">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-4 bg-slate-50 border-b border-slate-200 text-xs text-slate-500 flex items-center gap-2">
-                <i class="fa-solid fa-network-wired text-indigo-500"></i> สามีและภรรยาจะถูกจัดให้อยู่ในบล็อกแนวราบระดับ (Level) เดียวกันเสมอ ส่วนรุ่นลูกหลานจะแตกแถวหน้ากระดานลงด้านล่างอย่างเสมอกัน
+                <i class="fa-solid fa-arrows-left-right text-indigo-500"></i> สไลด์เลื่อน (Scroll) ไปทางขวาเพื่อดูรายชื่อญาติและเขย/สะใภ้ทั้งหมด | สุรสิงห์จะถูกล็อคให้อยู่ระหว่าง วไลพร และ ดารา เสมอ
             </div>
             
-            <div class="overflow-auto p-12 bg-slate-50/50 min-h-[55vh]">
+            <div class="tree-board">
                 <div class="tree-container" id="tree-root">
-                    <p class="text-slate-400 text-sm mt-10">กำลังโหลดผังตระกูล...</p>
+                    <p class="text-slate-400 text-sm mt-10">กำลังดึงข้อมูลและขึ้นรูปผังผังตระกูลหลัก...</p>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        // ใส่ Web App URL ล่าสุดของคุณตรงนี้
         const API_URL = "https://script.google.com/macros/s/AKfycbxGus8rRD26re2MlihZ16OYjuXmfwV9BcYVlG3GGJj91Dsd-c5yEZCDTaSqXM7JUe14WQ/exec"; 
         let familyData = [];
-        let renderedIds = new Set(); // ป้องกันการเรนเดอร์ซ้ำซ้อนในกรณีเขย/สะใภ้
+        let renderedIds = new Set();
 
         async function loadFamilyData() {
             try {
@@ -175,11 +195,11 @@
             renderedIds.clear();
 
             if (familyData.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-sm mt-10">ไม่พบรายชื่อเครือญาติ คลิกที่ปุ่ม "เพิ่มผู้ก่อตั้งตระกูล" เพื่อเริ่มสร้างระบบ</p>`;
+                container.innerHTML = `<p class="text-slate-400 text-sm mt-10">ไม่พบรายชื่อเครือญาติ กดปุ่มด้านบนเพื่อสร้างผู้ก่อตั้งตระกูล</p>`;
                 return;
             }
 
-            // ค้นหาเฉพาะคนที่เป็นรุ่นแรกสุดของตระกูลหลัก (ไม่ใช่สะใภ้/เขย และไม่มีพ่อแม่ระบุไว้)
+            // ค้นหารุ่นที่ 1 สตาร์ทจากคนที่ไม่ระบุพ่อแม่และไม่ใช่สะใภ้เขย
             const roots = familyData.filter(m => !m.fatherId && !m.motherId && m.type !== 'spouse');
             if(roots.length === 0 && familyData.length > 0) roots.push(familyData[0]);
 
@@ -197,7 +217,7 @@
             if (renderedIds.has(member.id)) return '';
             renderedIds.add(member.id);
 
-            // ค้นหาคู่สมรสทั้งหมด (ตรวจหาทั้งกรณีระบุในฟิลด์ spouses ของตัวเอง หรือไปปรากฏใน spouses ของผู้อื่น)
+            // ค้นหาคู่สมรสทั้งหมดของคนนี้
             let spouses = [];
             familyData.forEach(m => {
                 if (m.id !== member.id) {
@@ -211,21 +231,32 @@
                 }
             });
 
-            // สร้างกล่องรวมคู่สมรสให้อยู่ระนาบแนวราบเดียวกัน (Level เดียวกันถาวร)
+            // ─── กลไกการเรียงลำดับแบบพิเศษ: ดันสุรสิงห์ไปอยู่ตรงกลาง ───
             let coupleHtml = `<div class="couple-wrapper">`;
-            coupleHtml += createSingleCardHtml(member);
-            spouses.forEach(spouse => {
-                coupleHtml += createSingleCardHtml(spouse);
-            });
+            if (member.firstName.includes("สุรสิงห์") && spouses.length >= 2) {
+                // แยกตามรายชื่อจริงเพื่อให้ตรงตามเงื่อนไขที่ระบุ
+                let wilaiporn = spouses.find(s => s.firstName.includes("วไลพร"));
+                let dara = spouses.find(s => s.firstName.includes("ดารา"));
+                let otherSpouses = spouses.filter(s => s !== wilaiporn && s !== dara);
+
+                if (wilaiporn) coupleHtml += createSingleCardHtml(wilaiporn); // วไลพร ซ้ายสุด
+                coupleHtml += createSingleCardHtml(member);                   // สุรสิงห์ ตรงกลาง
+                if (dara) coupleHtml += createSingleCardHtml(dara);           // ดารา ขวาสุด
+                otherSpouses.forEach(s => { coupleHtml += createSingleCardHtml(s); });
+            } else {
+                // จัดเรียงแบบปกติในกรณีสมาชิกรุ่นอื่น
+                coupleHtml += createSingleCardHtml(member);
+                spouses.forEach(spouse => {
+                    coupleHtml += createSingleCardHtml(spouse);
+                });
+            }
             coupleHtml += `</div>`;
 
-            // ดึงรายชื่อลูกของคู่นี้ (คนที่มีฟิลด์พ่อหรือแม่ตรงกับ ID ของฝั่งคนในกลุ่มนี้)
+            // ค้นหารายชื่อลูกทั้งหมด
             const parentsIds = [member.id, ...spouses.map(s => s.id)];
             const children = familyData.filter(m => parentsIds.includes(m.fatherId) || parentsIds.includes(m.motherId));
 
             let nodeHtml = `<li>${coupleHtml}`;
-            
-            // ถ้ามีลูก แตกแถวลงไประดับถัดไป (Level ต่ำลงไปและวางแนวราบเสมอภาคกันหมด)
             if (children.length > 0) {
                 nodeHtml += `<ul>`;
                 children.forEach(child => {
