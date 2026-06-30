@@ -11,7 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; }
         
-        /* ─── โครงสร้างการบังคับ Level ระเบียบสายตระกูลสากล ─── */
+        /* ─── บังคับระบบสายตระกูลแบบ Level-Based Tree ─── */
         .tree-container, .tree-container ul {
             display: flex;
             justify-content: center;
@@ -23,7 +23,7 @@
             padding-top: 40px;
             position: relative;
         }
-        /* เส้นแกนแนวตั้งลากลงจากกล่องความสัมพันธ์พ่อแม่ */
+        /* เส้นตั้งเชื่อมจากกลุ่มพ่อแม่ลงไปหารุ่นลูก */
         .tree-container ul::before {
             content: '';
             position: absolute; top: 0; left: 50%;
@@ -35,7 +35,7 @@
             position: relative;
             padding: 40px 15px 0 15px;
         }
-        /* เส้นแนวนอนเชื่อมลูกๆ ในระดับชั้นเดียวกัน */
+        /* เส้นขนานตามแนวราบสำหรับรุ่นลูกใน Level เดียวกัน */
         .tree-container li::before, .tree-container li::after {
             content: '';
             position: absolute; top: 0; right: 50%;
@@ -52,16 +52,16 @@
         .tree-container li:last-child::before { border-right: 2px solid #94a3b8; border-radius: 0 6px 0 0; }
         .tree-container li:first-child::after { border-radius: 6px 0 0 0; }
 
-        /* บล็อกคู่สมรส: ล็อคให้อยู่ติดกันในแถวระนาบเดียวกัน (Level เดียวกัน 100%) */
+        /* บล็อกคู่สมรส: ล็อคให้อยู่ติดกันในระนาบราบแนวนอน 100% (สุรสิงห์ + วไลพร + ดารา จะอยู่ในนี้) */
         .couple-wrapper {
             display: inline-flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
             background-color: #ffffff;
-            padding: 8px;
+            padding: 10px;
             border-radius: 20px;
             border: 2px dashed #cbd5e1;
-            gap: 8px;
+            gap: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.04);
         }
         .member-card {
@@ -71,6 +71,7 @@
             text-align: left;
             font-size: 12px;
             transition: all 0.2s;
+            background: #fff;
         }
         .member-card:hover { transform: translateY(-2px); }
         .swal-field { width: 100% !important; margin: 5px 0 !important; }
@@ -78,7 +79,6 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- Top Navbar (ดึงโครงสร้างเดิมมาทนทาน) -->
     <nav class="bg-[#0f4c3a] text-white py-4 px-6 shadow-md">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
@@ -99,7 +99,6 @@
         </div>
     </nav>
 
-    <!-- เมนูกล่องแดชบอร์ดข้อมูลสถิติ (ดึงจากรูปภาพต้นฉบับกลับมาครบถ้วน) -->
     <div class="container mx-auto px-4 mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
             <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><i class="fa-solid fa-users text-xl"></i></div>
@@ -131,11 +130,10 @@
         </div>
     </div>
 
-    <!-- แผงพื้นที่กระดานวาดโครงสร้างผัง -->
     <main class="flex-grow p-4 md:p-6 container mx-auto">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-4 bg-slate-50 border-b border-slate-200 text-xs text-slate-500 flex items-center gap-2">
-                <i class="fa-solid fa-network-wired text-indigo-500"></i> ผังโครงสร้างเครือญาติแบบเลื่อนดูได้ (สามารถลาก/เลื่อนซ้ายขวาได้): คลิกที่ "+ เพิ่มลูก" หรือ "+ เพิ่มคู่สมรส" บนการ์ดเพื่อขยายสายตระกูล
+                <i class="fa-solid fa-network-wired text-indigo-500"></i> สามีและภรรยาจะถูกจัดให้อยู่ในบล็อกแนวราบระดับ (Level) เดียวกันเสมอ ส่วนรุ่นลูกหลานจะแตกแถวหน้ากระดานลงด้านล่างอย่างเสมอกัน
             </div>
             
             <div class="overflow-auto p-12 bg-slate-50/50 min-h-[55vh]">
@@ -147,17 +145,17 @@
     </main>
 
     <script>
-        // วาง Web App URL ตัวล่าสุดที่ทำการ Deploy แล้วของคุณในจุดนี้
+        // ใส่ Web App URL ล่าสุดของคุณตรงนี้
         const API_URL = "https://script.google.com/macros/s/AKfycbxGus8rRD26re2MlihZ16OYjuXmfwV9BcYVlG3GGJj91Dsd-c5yEZCDTaSqXM7JUe14WQ/exec"; 
         let familyData = [];
+        let renderedIds = new Set(); // ป้องกันการเรนเดอร์ซ้ำซ้อนในกรณีเขย/สะใภ้
 
         async function loadFamilyData() {
             try {
-                document.getElementById('stat-db').innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 inline-block animate-spin"></span> กำลังดึงข้อมูล...`;
+                document.getElementById('stat-db').innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 inline-block animate-spin"></span>`;
                 const response = await fetch(API_URL);
                 familyData = await response.json();
                 
-                // คำนวณยอดและแสดงผลบนแดชบอร์ดตามรูปดั้งเดิม
                 document.getElementById('stat-total').innerText = familyData.length + " คน";
                 document.getElementById('stat-blood').innerText = familyData.filter(m => m.type !== 'spouse').length + " คน";
                 document.getElementById('stat-spouse').innerText = familyData.filter(m => m.type === 'spouse').length + " คน";
@@ -166,40 +164,54 @@
                 renderFamilyTree();
             } catch (error) {
                 console.error(error);
-                document.getElementById('stat-db').innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> ผิดพลาด`;
-                Swal.fire('เชื่อมต่อผิดพลาด', 'ไม่สามารถดึงข้อมูลจาก Google Sheets ได้ โปรดตรวจสอบการ Deploy', 'error');
+                document.getElementById('stat-db').innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>`;
+                Swal.fire('การเชื่อมต่อผิดพลาด', 'ไม่สามารถเข้าถึงสคริปต์หลังบ้านได้', 'error');
             }
         }
 
         function renderFamilyTree() {
             const container = document.getElementById('tree-root');
+            container.innerHTML = '';
+            renderedIds.clear();
+
             if (familyData.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-sm mt-10">ไม่พบรายชื่อเครือญาติในฐานข้อมูล กดปุ่ม "เพิ่มผู้ก่อตั้งตระกูล" เพื่อเริ่มต้น</p>`;
+                container.innerHTML = `<p class="text-slate-400 text-sm mt-10">ไม่พบรายชื่อเครือญาติ คลิกที่ปุ่ม "เพิ่มผู้ก่อตั้งตระกูล" เพื่อเริ่มสร้างระบบ</p>`;
                 return;
             }
 
-            // ค้นหารุ่นแรกสุด (ไม่มีพ่อ ไม่มีแม่ และไม่ใช่ตัวแปรสะใภ้หลัก)
+            // ค้นหาเฉพาะคนที่เป็นรุ่นแรกสุดของตระกูลหลัก (ไม่ใช่สะใภ้/เขย และไม่มีพ่อแม่ระบุไว้)
             const roots = familyData.filter(m => !m.fatherId && !m.motherId && m.type !== 'spouse');
             if(roots.length === 0 && familyData.length > 0) roots.push(familyData[0]);
 
             let html = '<ul>';
-            roots.forEach(root => { html += buildNodeHtml(root); });
+            roots.forEach(root => {
+                if (!renderedIds.has(root.id)) {
+                    html += buildNodeHtml(root);
+                }
+            });
             html += '</ul>';
             container.innerHTML = html;
         }
 
         function buildNodeHtml(member) {
-            // ดึงข้อมูลคู่สมรสทุกคนของคนนี้
-            let spouses = [];
-            if (member.spouses) {
-                const sIds = member.spouses.split(',');
-                sIds.forEach(id => {
-                    const match = familyData.find(m => m.id === id.trim());
-                    if (match) spouses.push(match);
-                });
-            }
+            if (renderedIds.has(member.id)) return '';
+            renderedIds.add(member.id);
 
-            // จัดกลุ่มผูกมัดให้อยู่ในบล็อกเดียวกัน (ล็อค Level แนวนอนเสมอภาคกันแน่นอน)
+            // ค้นหาคู่สมรสทั้งหมด (ตรวจหาทั้งกรณีระบุในฟิลด์ spouses ของตัวเอง หรือไปปรากฏใน spouses ของผู้อื่น)
+            let spouses = [];
+            familyData.forEach(m => {
+                if (m.id !== member.id) {
+                    let isSpouse = false;
+                    if (member.spouses && member.spouses.split(',').map(s=>s.trim()).includes(m.id)) isSpouse = true;
+                    if (m.spouses && m.spouses.split(',').map(s=>s.trim()).includes(member.id)) isSpouse = true;
+                    if (isSpouse && !renderedIds.has(m.id)) {
+                        spouses.push(m);
+                        renderedIds.add(m.id);
+                    }
+                }
+            });
+
+            // สร้างกล่องรวมคู่สมรสให้อยู่ระนาบแนวราบเดียวกัน (Level เดียวกันถาวร)
             let coupleHtml = `<div class="couple-wrapper">`;
             coupleHtml += createSingleCardHtml(member);
             spouses.forEach(spouse => {
@@ -207,16 +219,18 @@
             });
             coupleHtml += `</div>`;
 
-            // ดึงรายชื่อลูกของคู่นี้ (คนที่มี พ่อ หรือ แม่ ตรงกับกลุ่มนี้)
+            // ดึงรายชื่อลูกของคู่นี้ (คนที่มีฟิลด์พ่อหรือแม่ตรงกับ ID ของฝั่งคนในกลุ่มนี้)
             const parentsIds = [member.id, ...spouses.map(s => s.id)];
             const children = familyData.filter(m => parentsIds.includes(m.fatherId) || parentsIds.includes(m.motherId));
 
             let nodeHtml = `<li>${coupleHtml}`;
             
-            // แตกชั้นลงเป็นรุ่นลูกถัดไปด้านล่าง
+            // ถ้ามีลูก แตกแถวลงไประดับถัดไป (Level ต่ำลงไปและวางแนวราบเสมอภาคกันหมด)
             if (children.length > 0) {
                 nodeHtml += `<ul>`;
-                children.forEach(child => { nodeHtml += buildNodeHtml(child); });
+                children.forEach(child => {
+                    nodeHtml += buildNodeHtml(child);
+                });
                 nodeHtml += `</ul>`;
             }
             nodeHtml += `</li>`;
@@ -227,15 +241,18 @@
         function createSingleCardHtml(m) {
             const isMale = m.gender === 'male';
             const bgClass = isMale ? 'bg-sky-50 border-sky-300 text-sky-900' : 'bg-rose-50 border-rose-300 text-rose-900';
-            const pfx = m.prefix || ''; // ดึงคำนำหน้าชื่อที่เลือกไว้มาใช้
+            const pfx = m.prefix || '';
             const defaultImg = isMale ? 'https://cdn-icons-png.flaticon.com/512/4128/4128176.png' : 'https://cdn-icons-png.flaticon.com/512/4128/4128246.png';
 
             return `
-                <div class="member-card border bg-white ${bgClass} shadow-sm">
+                <div class="member-card border ${bgClass} shadow-sm">
                     <div class="flex items-center gap-2 mb-2">
                         <img src="${m.imageUrl || defaultImg}" class="w-9 h-9 rounded-full border bg-white object-cover" onerror="this.src='${defaultImg}'">
                         <div class="truncate w-28">
-                            <div class="font-bold text-[12px] truncate"><span class="opacity-70 text-[10px] block font-normal text-slate-500">${pfx}</span>${m.firstName}</div>
+                            <div class="font-bold text-[12px] truncate">
+                                <span class="opacity-75 text-[10px] block font-normal text-slate-500">${pfx}</span>
+                                ${m.firstName}
+                            </div>
                             <div class="text-[10px] text-slate-500 truncate">${m.lastName || ''}</div>
                         </div>
                     </div>
@@ -255,10 +272,9 @@
             `;
         }
 
-        // เปิด Modal เพิ่มข้อมูล (เพิ่มคำนำหน้าชื่อแบบครบครัน)
         function openAddModal(fatherId, motherId, type) {
             Swal.fire({
-                title: type === 'spouse' ? '💞 เพิ่มข้อมูลคู่สมรส' : '👶 เพิ่มข้อมูลทายาทสายตรง',
+                title: type === 'spouse' ? '💞 เพิ่มข้อมูลคู่สมรส' : '👶 เพิ่มข้อมูลทายาทสายลูก',
                 html: `
                     <div class="text-left text-xs space-y-1.5 p-1">
                         <div class="grid grid-cols-2 gap-2">
@@ -351,7 +367,6 @@
             });
         }
 
-        // หน้าต่างแก้ไขข้อมูล (UPDATE)
         function openEditModal(id) {
             const m = familyData.find(x => x.id === id);
             if (!m) return;
