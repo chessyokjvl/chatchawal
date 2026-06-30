@@ -8,126 +8,122 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; }
-        
-        .tree-board {
-            overflow-x: auto;
-            overflow-y: auto;
-            padding: 50px;
-            background-color: #f8fafc;
-            min-height: 65vh;
-            text-align: center;
-            white-space: nowrap;
-        }
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; }
+    
+    .tree-board {
+        overflow-x: auto;
+        overflow-y: auto;
+        padding: 50px;
+        background-color: #f8fafc;
+        min-height: 65vh;
+        text-align: center;
+    }
 
-        .tree-container {
-            display: inline-block;
-            margin: 0 auto;
-        }
+    .tree-container {
+        display: inline-block;
+        margin: 0 auto;
+    }
 
-        .tree-container ul {
-            padding-top: 30px;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            margin: 0;
-            padding-left: 0;
-            list-style: none;
-        }
+    .tree-container ul {
+        padding-top: 40px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        margin: 0;
+        padding-left: 0;
+        list-style: none;
+    }
 
-        /* เส้นดิ่งหลักทิ้งลงมาจากตรงกลางของรุ่นก่อนหน้า */
-        .tree-container ul::before {
-            content: '';
-            position: absolute; top: 0; left: 50%;
-            border-left: 2px solid #94a3b8;
-            width: 0; height: 30px;
-        }
+    /* เส้นดิ่งหลักที่วิ่งลงมาจากกลุ่มพ่อแม่ด้านบน */
+    .tree-container ul::before {
+        content: '';
+        position: absolute; top: 0; left: 50%;
+        border-left: 3px solid #94a3b8; /* เพิ่มความหนาของเส้นเป็น 3px เพื่อความชัดเจน */
+        width: 0; height: 40px;
+    }
 
-        .tree-container li {
-            text-align: center;
-            position: relative;
-            padding: 30px 10px 0 10px;
-            display: inline-block;
-            vertical-align: top;
-        }
+    .tree-container li {
+        text-align: center;
+        position: relative;
+        padding: 40px 15px 0 15px;
+        display: inline-block;
+        vertical-align: top;
+    }
 
-        /* ─── ระบบเส้นเชื่อมโยงแบบเจาะจงกล่องลูกสายเลือด ─── */
-        /* เส้นแนวนอนบนหัวของรายการลูกพี่น้อง */
-        .tree-container li::before, .tree-container li::after {
-            content: '';
-            position: absolute; top: 0; right: 50%;
-            border-top: 2px solid #94a3b8;
-            width: 50%; height: 30px;
-        }
-        .tree-container li::after {
-            right: auto; left: 50%;
-            border-left: 2px solid #94a3b8; /* เส้นดิ่งชี้ลงหาตำแหน่งกล่อง */
-        }
-        
-        /* จัดตำแหน่งให้เส้นดิ่งตกลงตรงกึ่งกลางของ 'การ์ดลูกสายเลือด' พอดี (ไม่ใช่ตรงกลางระหว่างคู่) */
-        .tree-container li::after {
-            left: 100px; /* ขยับเส้นดิ่งให้ตรงสอดคล้องกับขนาดการ์ดสายเลือดตัวแรก */
-        }
+    /* เส้นแนวนอนเชื่อมระหว่างกลุ่มพี่น้อง */
+    .tree-container li::before, .tree-container li::after {
+        content: '';
+        position: absolute; top: 0; right: 50%;
+        border-top: 3px solid #94a3b8;
+        width: 50%; height: 40px;
+    }
+    .tree-container li::after {
+        right: auto; left: 50%;
+        border-left: 3px solid #94a3b8;
+    }
 
-        .tree-container li:only-child::after, .tree-container li:only-child::before { display: none; }
-        .tree-container li:only-child { padding-top: 0; }
-        .tree-container li:first-child::before, .tree-container li:last-child::after { border: 0 none; }
-        .tree-container li:last-child::before { border-right: 2px solid #94a3b8; border-radius: 0 6px 0 0; }
-        .tree-container li:first-child::after { border-radius: 6px 0 0 0; }
+    /* ปรับแต่ง Logic: บังคับให้เส้นดิ่งตัวล่างสุดทิ้งตัวลงตรงกึ่งกลางของการ์ดตัวแรก (สายเลือดตรง) */
+    .tree-container li::after {
+        left: 102px; /* ล็อกค่าให้ตรงกับกึ่งกลางสัดส่วนกว้างของการ์ดสายเลือดพอดี */
+    }
 
-        /* จัดหน้าตาบล็อกคู่แต่งงานให้แยกการ์ด แต่เกาะกลุ่มกันด้วยเส้นแต่งงานหลังการ์ด */
-        .family-node-group {
-            display: inline-flex;
-            align-items: flex-start;
-            gap: 0px;
-            position: relative;
-        }
+    .tree-container li:only-child::after, .tree-container li:only-child::before { display: none; }
+    .tree-container li:only-child { padding-top: 0; }
+    .tree-container li:first-child::before, .tree-container li:last-child::after { border: 0 none; }
+    .tree-container li:last-child::before { border-right: 3px solid #94a3b8; border-radius: 0 8px 0 0; }
+    .tree-container li:first-child::after { border-radius: 8px 0 0 0; }
 
-        /* เส้นเชื่อมสมรสแนวนอนระหว่างการ์ดลูก และ การ์ดเขย/สะใภ้ */
-        .marriage-line {
-            width: 20px;
-            height: 2px;
-            background-color: #cbd5e1;
-            align-self: center;
-            position: relative;
-        }
-        /* ใส่หัวใจดวงเล็กๆ ตรงเส้นเชื่อมสมรส */
-        .marriage-line::after {
-            content: '❤️';
-            font-size: 8px;
-            position: absolute;
-            top: -6px; left: 3px;
-        }
+    /* บล็อกจัดตำแหน่งกลุ่ม Node */
+    .family-node-group {
+        display: inline-flex;
+        align-items: flex-start;
+        position: relative;
+    }
 
-        .member-card {
-            width: 175px;
-            padding: 10px;
-            border-radius: 12px;
-            text-align: left;
-            font-size: 11px;
-            background: #fff;
-            position: relative;
-            z-index: 10;
-        }
+    /* เส้นแต่งงานแนวนอนเชื่อมหัวใจ */
+    .marriage-line {
+        width: 30px;
+        height: 3px;
+        background-color: #cbd5e1;
+        align-self: center;
+        position: relative;
+        z-index: 1;
+    }
+    .marriage-line::after {
+        content: '❤️';
+        font-size: 10px;
+        position: absolute;
+        top: -7px; left: 8px;
+    }
 
-        /* ไฮไลท์พิเศษแบ่งสีขอบเพื่อให้แยกแยะสายเลือด (สายตรงขอบทึบ เขยสะใภ้ขอบประ) */
-        .blood-line-border { border: 2px solid #94a3b8; }
-        .spouse-line-border { border: 2px dashed #cbd5e1; }
+    .member-card {
+        width: 175px;
+        padding: 12px;
+        border-radius: 14px;
+        text-align: left;
+        font-size: 11px;
+        background: #fff;
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
 
-        .multi-spouse-row {
-            display: inline-flex;
-            align-items: flex-start;
-            justify-content: center;
-            gap: 40px;
-        }
-        .spouse-couple-block {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .swal-field { width: 100% !important; margin: 5px 0 !important; }
-    </style>
+    .blood-line-border { border: 2.5px solid #64748b; }
+    .spouse-line-border { border: 2.5px dashed #cbd5e1; }
+
+    .multi-spouse-row {
+        display: inline-flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 50px;
+    }
+    .spouse-couple-block {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+    }
+</style>
 </head>
 <body class="min-h-screen flex flex-col">
 
