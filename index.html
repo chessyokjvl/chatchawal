@@ -3,428 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌳 ระบบรวมญาติ (Family Tree Application)</title>
+    <title>🌳 ระบบผังเครือญาติมาตรฐานอัตโนมัติ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
-        body {
-            font-family: 'Sarabun', sans-serif;
-            background-color: #f1f5f9;
-        }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
         
-        /* Advanced CSS Family Tree Styling */
-        .tree-wrapper {
+        /* ─── โครงสร้างระเบียบผังต้นไม้แบบแท้จริง (Level-based Tree) ─── */
+        .tree-container, .tree-container ul {
             display: flex;
             justify-content: center;
-            align-items: flex-start;
-            padding: 40px 20px;
-        }
-
-        .tree ul {
-            padding-top: 30px; 
-            position: relative;
-            transition: all 0.5s;
-            display: flex;
-            justify-content: center;
+            padding: 0;
             margin: 0;
+            list-style: none;
         }
-
-        .tree li {
+        .tree-container ul {
+            padding-top: 35px;
+            position: relative;
+        }
+        /* เส้นตั้งเชื่อมโยงจากพ่อแม่ลงไปที่สายลูก */
+        .tree-container ul::before {
+            content: '';
+            position: absolute; top: 0; left: 50%;
+            border-left: 2px solid #94a3b8;
+            width: 0; height: 35px;
+        }
+        .tree-container li {
             text-align: center;
-            list-style-type: none;
             position: relative;
-            padding: 30px 15px 0 15px;
-            transition: all 0.5s;
+            padding: 35px 10px 0 10px;
         }
-
-        /* Connectors */
-        .tree li::before, .tree li::after {
+        /* เส้นแนวนอนเชื่อมโยงในกลุ่มรุ่นเดียวกัน */
+        .tree-container li::before, .tree-container li::after {
             content: '';
-            position: absolute; 
-            top: 0; 
-            right: 50%;
-            border-top: 2px solid #cbd5e1;
-            width: 50%; 
-            height: 30px;
+            position: absolute; top: 0; right: 50%;
+            border-top: 2px solid #94a3b8;
+            width: 50%; height: 35px;
         }
-        .tree li::after {
-            right: auto; 
-            left: 50%;
-            border-left: 2px solid #cbd5e1;
+        .tree-container li::after {
+            right: auto; left: 50%;
+            border-left: 2px solid #94a3b8;
         }
+        .tree-container li:only-child::after, .tree-container li:only-child::before { display: none; }
+        .tree-container li:only-child { padding-top: 0; }
+        .tree-container li:first-child::before, .tree-container li:last-child::after { border: 0 none; }
+        .tree-container li:last-child::before { border-right: 2px solid #94a3b8; border-radius: 0 6px 0 0; }
+        .tree-container li:first-child::after { border-radius: 6px 0 0 0; }
 
-        /* Disconnect single children or end nodes */
-        .tree li:only-child::after, .tree li:only-child::before {
-            display: none;
-        }
-        .tree li:only-child { 
-            padding-top: 0;
-        }
-        .tree li:first-child::before, .tree li:last-child::after {
-            border: 0 none;
-        }
-        .tree li:last-child::before {
-            border-right: 2px solid #cbd5e1;
-            border-radius: 0 5px 0 0;
-        }
-        .tree li:first-child::after {
-            border-radius: 5px 0 0 0;
-        }
-
-        /* Downward connectors from parents */
-        .tree ul ul::before {
-            content: '';
-            position: absolute; 
-            top: 0; 
-            left: 50%;
-            border-left: 2px solid #cbd5e1;
-            width: 0; 
-            height: 30px;
-        }
-
-        /* Member Node Layout styles */
-        .member-couple-container {
+        /* การ์ดแกนกลางความสัมพันธ์ (บล็อกพ่อ+แม่เคียงข้างกันในระนาบเดียว) */
+        .couple-block {
             display: inline-flex;
-            align-items: stretch;
+            align-items: center;
+            justify-content: center;
             background: #ffffff;
-            border: 2px solid #e2e8f0;
+            padding: 6px;
             border-radius: 16px;
-            padding: 8px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            position: relative;
-            gap: 8px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid #cbd5e1;
+            gap: 6px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
         }
-        
-        .member-couple-container:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        .node-card {
-            width: 190px;
+        .member-card {
+            width: 175px;
+            padding: 10px;
             border-radius: 12px;
-            padding: 12px;
             text-align: left;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            font-size: 12px;
             position: relative;
         }
-
-        .node-blood {
-            background-color: #f0fdf4;
-            border: 1px solid #bbf7d0;
-        }
-
-        .node-spouse {
-            background-color: #fff1f2;
-            border: 1px solid #fecdd3;
-        }
-
-        /* Custom SweetAlert input styles */
-        .swal-field {
-            width: 100% !important;
-            margin: 8px 0 !important;
-            box-sizing: border-box !important;
-        }
+        .swal-field { width: 100% !important; margin: 6px 0 !important; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <nav class="bg-gradient-to-r from-emerald-700 to-teal-800 text-white shadow-lg">
-        <div class="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+    <nav class="bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-md py-4 px-6">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="p-2.5 bg-white/20 rounded-xl">
-                    <i class="fa-solid fa-tree text-2xl text-emerald-300"></i>
-                </div>
+                <i class="fa-solid fa-diagram-project text-2xl text-amber-400"></i>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-wide">ระบบรวมญาติ (Family Tree Web App)</h1>
-                    <p class="text-xs text-emerald-100/80">ระบบบันทึก จัดการ และแสดงผังเครือญาติอัตโนมัติ (CRUD)</p>
+                    <h1 class="text-xl font-bold">ผังเครือญาติอัตโนมัติตามลำดับขั้น (Family Tree Standard)</h1>
+                    <p class="text-xs text-slate-400">จัดระดับชั้นสามีภรรยาและรุ่นลูกหลานอย่างเสมอกัน</p>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <button onclick="openAddModal(null, null, 'blood')" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
-                    <i class="fa-solid fa-crown"></i> เพิ่มผู้ก่อตั้งต้นตระกูล
-                </button>
-                <button onclick="loadFamilyData()" class="bg-white/10 hover:bg-white/25 text-white border border-white/25 font-medium px-4 py-2.5 rounded-xl transition flex items-center gap-2">
-                    <i class="fa-solid fa-rotate"></i> รีเฟรชผัง
-                </button>
-            </div>
+            <button onclick="openAddModal(null, null, 'blood')" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-sm px-4 py-2.5 rounded-xl shadow transition">
+                <i class="fa-solid fa-crown"></i> เพิ่มต้นตระกูลหลัก
+            </button>
         </div>
     </nav>
 
-    <main class="flex-grow container mx-auto p-4 md:p-6">
-        
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200/80 flex items-center gap-4">
-                <div class="p-3 bg-emerald-100 text-emerald-700 rounded-lg"><i class="fa-solid fa-users text-xl"></i></div>
-                <div>
-                    <div class="text-xs text-slate-400 font-medium">สมาชิกทั้งหมด</div>
-                    <div id="stat-total" class="text-xl font-bold text-slate-700">- คน</div>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200/80 flex items-center gap-4">
-                <div class="p-3 bg-blue-100 text-blue-700 rounded-lg"><i class="fa-solid fa-droplet text-xl"></i></div>
-                <div>
-                    <div class="text-xs text-slate-400 font-medium">สายเลือดตรง</div>
-                    <div id="stat-blood" class="text-xl font-bold text-slate-700">- คน</div>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200/80 flex items-center gap-4">
-                <div class="p-3 bg-rose-100 text-rose-700 rounded-lg"><i class="fa-solid fa-heart text-xl"></i></div>
-                <div>
-                    <div class="text-xs text-slate-400 font-medium">เขย / สะใภ้</div>
-                    <div id="stat-spouse" class="text-xl font-bold text-slate-700">- คน</div>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200/80 flex items-center gap-4">
-                <div class="p-3 bg-amber-100 text-amber-700 rounded-lg"><i class="fa-solid fa-database text-xl"></i></div>
-                <div>
-                    <div class="text-xs text-slate-400 font-medium">สถานะ Database</div>
-                    <div class="text-sm font-bold text-emerald-600 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span> เชื่อมต่อแล้ว</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                <div class="flex items-center gap-2 text-sm text-slate-500 font-medium">
-                    <i class="fa-solid fa-network-wired"></i> ผังโครงสร้างเครือญาติแบบเลื่อนดูได้ (สามารถลาก/เลื่อนซ้ายขวาเพื่อดูสายงาน)
-                </div>
-                <div class="text-xs text-slate-400">
-                    <i class="fa-regular fa-lightbulb"></i> ทิป: คลิกที่ "+ เพิ่มลูก" หรือ "+ เพิ่มคู่สมรส" บนการ์ดเพื่อขยายสายตระกูล
-                </div>
+    <main class="flex-grow p-4 md:p-6 container mx-auto">
+        <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between text-xs text-slate-500 font-medium">
+                <div><i class="fa-solid fa-info-circle text-blue-500"></i> แผนผังจะแยกสีตามเพศ: ชาย (ฟ้า) ภรรยา/หญิง (ชมพู) และจัดรุ่นระดับเสมอกันทางระนาบ</div>
+                <button onclick="loadFamilyData()" class="text-slate-600 hover:text-slate-900"><i class="fa-solid fa-sync"></i> รีเฟรช</button>
             </div>
             
-            <div class="overflow-auto max-h-[70vh] bg-slate-50/50">
-                <div class="tree-wrapper">
-                    <div id="tree-container" class="tree">
-                        <div class="text-center py-20 text-slate-400">
-                            <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 block text-slate-300"></i>
-                            กำลังเชื่อมต่อฐานข้อมูล Google Sheets...
-                        </div>
-                    </div>
+            <div class="overflow-auto p-8 bg-slate-50/40 min-h-[60vh]">
+                <div class="tree-container" id="tree-root">
+                    <p class="text-slate-400 text-sm mt-10">กำลังเรียกฐานข้อมูลตระกูล...</p>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="bg-slate-800 text-slate-400 py-4 border-t border-slate-700 text-center text-xs">
-        <p>© 2026 ระบบรวมญาติอัจฉริยะ (Family Tree Application) Powered by Google Sheets & GitHub Pages</p>
-    </footer>
-
     <script>
-        // WEB APP URL ที่เชื่อมโยงกับฐานข้อมูลจริงของผู้ใช้
+        // วาง Web App URL ตัวใหม่ล่าสุดของคุณลงในนี้
         const API_URL = "https://script.google.com/macros/s/AKfycbxGus8rRD26re2MlihZ16OYjuXmfwV9BcYVlG3GGJj91Dsd-c5yEZCDTaSqXM7JUe14WQ/exec"; 
         let familyData = [];
 
-        // 1. ดึงข้อมูลสมาชิกเครือญาติจาก Google Apps Script
         async function loadFamilyData() {
             try {
                 const response = await fetch(API_URL);
                 familyData = await response.json();
-                
-                // อัปเดตตัวเลขหน้าแดชบอร์ดสถิติ
-                updateStatistics();
-                // วาดแผนผังความสัมพันธ์ใหม่
-                renderTree();
+                renderFamilyTree();
             } catch (error) {
-                console.error("Error loading data:", error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'เชื่อมต่อผิดพลาด',
-                    text: 'ไม่สามารถดึงข้อมูลจาก Google Sheets ได้ โปรดตรวจสอบการ Deploy หรือสิทธิ์เข้าใช้งาน',
-                    confirmButtonText: 'ลองอีกครั้ง'
-                });
+                console.error(error);
+                Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมฐานข้อมูลได้', 'error');
             }
         }
 
-        // 2. คำนวณสถิติต่างๆ
-        function updateStatistics() {
-            document.getElementById('stat-total').innerText = familyData.length + " คน";
-            const bloodCount = familyData.filter(m => m.type === 'blood' || !m.type).length;
-            const spouseCount = familyData.filter(m => m.type === 'spouse').length;
-            document.getElementById('stat-blood').innerText = bloodCount + " คน";
-            document.getElementById('stat-spouse').innerText = spouseCount + " คน";
-        }
-
-        // 3. วาดแผนผังความสัมพันธ์หลัก (Tree Renderer)
-        function renderTree() {
-            const container = document.getElementById('tree-container');
-            if (!familyData || familyData.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12">
-                        <div class="text-slate-300 text-5xl mb-3"><i class="fa-solid fa-folder-open"></i></div>
-                        <p class="text-slate-500 font-medium">ยังไม่พบข้อมูลผู้ใดในฐานข้อมูล</p>
-                        <p class="text-slate-400 text-xs mt-1 mb-4">เริ่มต้นด้วยการสร้างผู้ก่อตั้งต้นตระกูลคนแรกของคุณ</p>
-                        <button onclick="openAddModal(null, null, 'blood')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm transition">
-                            + เพิ่มต้นตระกูลคนแรก
-                        </button>
-                    </div>`;
+        function renderFamilyTree() {
+            const container = document.getElementById('tree-root');
+            if (familyData.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-sm mt-10">ไม่พบรายชื่อในระบบ คลิกเพิ่มต้นตระกูลหลักด้านบนได้เลยครับ</p>`;
                 return;
             }
 
-            // ค้นหาคนที่เป็น "ต้นตระกูลหลัก" ของบ้าน (ไม่มีพ่อ ไม่มีแม่ และไม่ใช่สะใภ้/เขย)
+            // ค้นหาต้นตระกูลแรกสุด (ไม่มีพ่อ ไม่มีแม่ และไม่ใช่สะใภ้ขยับเข้ามา)
             const roots = familyData.filter(m => !m.fatherId && !m.motherId && m.type !== 'spouse');
-
-            if(roots.length === 0 && familyData.length > 0) {
-                // หากกรองไม่ได้เลย แต่ใน DB มีข้อมูล ให้ดึงคนแรกสุดขึ้นมาแสดงเป็นแกนกลางก่อน
-                roots.push(familyData[0]);
-            }
+            if(roots.length === 0 && familyData.length > 0) roots.push(familyData[0]);
 
             let html = '<ul>';
             roots.forEach(root => {
-                html += renderMemberNode(root);
+                html += buildNodeHtml(root);
             });
             html += '</ul>';
             container.innerHTML = html;
         }
 
-        // 4. ฟังก์ชัน Recursion ในการแปลง Node สมาชิกแต่ละขั้น แตกแขนงออกเป็นชั้นลูก หลาน เหลน
-        function renderMemberNode(member) {
-            // หาคู่สมรส (Spouse) ทั้งหมดที่ถูกผูกไว้ในคอลัมน์ spouses หรือมีเครื่องหมายบอกว่าเป็นคู่สมรส
-            let spousesHtml = '';
+        // ฟังก์ชันสร้างระดับชั้นความสัมพันธ์ (สร้างบล็อกกลุ่ม พ่อ+แม่ และแตกแถวลูกๆ เป็นหน้ากระดาน)
+        function buildNodeHtml(member) {
+            // ค้นหาคู่สมรสของคนนี้
+            let spouses = [];
             if (member.spouses) {
-                const spouseIds = member.spouses.split(',').map(id => id.trim());
-                spouseIds.forEach(sId => {
-                    const spouse = familyData.find(m => m.id === sId);
-                    if (spouse) {
-                        spousesHtml += `
-                            <div class="node-card node-spouse">
-                                <div>
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <img src="${spouse.imageUrl || 'https://cdn-icons-png.flaticon.com/512/65/65581.png'}" 
-                                             class="w-10 h-10 rounded-full object-cover border border-rose-300 shadow-sm" onerror="this.src='https://cdn-icons-png.flaticon.com/512/65/65581.png'">
-                                        <div>
-                                            <div class="text-xs font-bold text-rose-800 truncate max-w-[110px]">${spouse.firstName}</div>
-                                            <div class="text-[10px] text-slate-400 italic">สะใภ้/เขย</div>
-                                        </div>
-                                    </div>
-                                    <div class="text-[11px] text-slate-600 space-y-0.5 border-t border-rose-200/50 pt-1">
-                                        <div><span class="text-slate-400 font-medium">ชื่อเล่น:</span> ${spouse.nickname || '-'}</div>
-                                        <div class="truncate"><span class="text-slate-400 font-medium">เบอร์:</span> ${spouse.phone || '-'}</div>
-                                        <div class="truncate text-[10px] text-slate-400"><i class="fa-solid fa-location-dot"></i> ${spouse.address || '-'}</div>
-                                    </div>
-                                </div>
-                                <div class="mt-2.5 pt-1.5 border-t border-rose-200/50 flex justify-end gap-2 text-[11px]">
-                                    <button onclick="openEditModal('${spouse.id}')" class="text-blue-600 hover:text-blue-800 transition font-medium"><i class="fa-regular fa-pen-to-square"></i> แก้ไข</button>
-                                    <button onclick="deleteMember('${spouse.id}')" class="text-rose-600 hover:text-rose-800 transition font-medium"><i class="fa-regular fa-trash-can"></i> ลบ</button>
-                                </div>
-                            </div>
-                        `;
-                    }
+                const sIds = member.spouses.split(',');
+                sIds.forEach(id => {
+                    const match = familyData.find(m => m.id === id.trim());
+                    if (match) spouses.push(match);
                 });
             }
 
-            // ค้นหาลูกๆ (มองหาคนที่มี fatherId หรือ motherId ตรงกับสมาชิกสายเลือดคนนี้)
-            const children = familyData.filter(m => m.fatherId === member.id || m.motherId === member.id);
-
-            let html = `<li>`;
-            html += `<div class="member-couple-container">`;
+            // เรนเดอร์ฝั่งตัวการ์ดหลักและคู่แต่งงานให้อยู่ในบล็อกเดียวกัน (Level เดียวกัน)
+            let coupleHtml = `<div class="couple-block">`;
+            coupleHtml += createSingleCardHtml(member);
             
-            // การ์ดบุคคลหลักที่เป็นสายเลือดตรงของวงศ์ตระกูล
-            html += `
-                <div class="node-card node-blood">
-                    <div>
-                        <div class="flex items-center gap-2 mb-2">
-                            <img src="${member.imageUrl || 'https://cdn-icons-png.flaticon.com/512/65/65581.png'}" 
-                                 class="w-10 h-10 rounded-full object-cover border border-emerald-300 shadow-sm" onerror="this.src='https://cdn-icons-png.flaticon.com/512/65/65581.png'">
-                            <div>
-                                <div class="text-xs font-bold text-emerald-900 truncate max-w-[110px]">${member.firstName}</div>
-                                <div class="text-[10px] text-emerald-600 font-medium">${member.lastName || ''}</div>
-                            </div>
-                        </div>
-                        <div class="text-[11px] text-slate-600 space-y-0.5 border-t border-emerald-200/50 pt-1">
-                            <div><span class="text-slate-400 font-medium">ชื่อเล่น:</span> <span class="text-emerald-700 font-semibold">${member.nickname || '-'}</span></div>
-                            <div class="text-[10px] text-slate-500"><i class="fa-regular fa-calendar-days"></i> ${member.birthDate ? member.birthDate.split('T')[0] : '-'}</div>
-                            <div class="truncate"><span class="text-slate-400 font-medium">เบอร์:</span> ${member.phone || '-'}</div>
+            spouses.forEach(spouse => {
+                coupleHtml += createSingleCardHtml(spouse);
+            });
+            coupleHtml += `</div>`;
+
+            // ดึงข้อมูลลูกทุกคน (คนที่มีพ่อ หรือแม่ เป็นคนคู่นี้)
+            // รวบรวม ID ทั้งหมดของกลุ่มคู่เพื่อป้องกันลูกตกหล่น
+            const parentsIds = [member.id, ...spouses.map(s => s.id)];
+            const children = familyData.filter(m => parentsIds.includes(m.fatherId) || parentsIds.includes(m.motherId));
+
+            let nodeHtml = `<li>${coupleHtml}`;
+            
+            // หากมีลูก ให้แตกแถวลงด้านล่างเป็นกลุ่มเดียวกัน (Level ต่ำลงไปเสมอกันทั้งหมด)
+            if (children.length > 0) {
+                nodeHtml += `<ul>`;
+                children.forEach(child => {
+                    nodeHtml += buildNodeHtml(child);
+                });
+                nodeHtml += `</ul>`;
+            }
+            nodeHtml += `</li>`;
+            
+            return nodeHtml;
+        }
+
+        // ฟังก์ชันวาดรูปการ์ดเดี่ยว แบ่งสีตามเพศ: ชาย (ฟ้า) / หญิง (ชมพู)
+        function createSingleCardHtml(m) {
+            const isMale = m.gender === 'male';
+            const bgClass = isMale ? 'bg-sky-50 border-sky-200 text-sky-900' : 'bg-rose-50 border-rose-200 text-rose-900';
+            const textGender = isMale ? '<span class="text-blue-500">นาย</span>' : '<span class="text-pink-500">นาง/น.ส.</span>';
+            const defaultImg = isMale ? 'https://cdn-icons-png.flaticon.com/512/4128/4128176.png' : 'https://cdn-icons-png.flaticon.com/512/4128/4128246.png';
+
+            return `
+                <div class="member-card border ${bgClass} shadow-sm">
+                    <div class="flex items-center gap-2 mb-1">
+                        <img src="${m.imageUrl || defaultImg}" class="w-8 h-8 rounded-full border bg-white object-cover" onerror="this.src='${defaultImg}'">
+                        <div class="truncate w-28">
+                            <div class="font-bold text-[11px] truncate">${textGender} ${m.firstName}</div>
+                            <div class="text-[9px] text-slate-500 truncate">${m.lastName || ''}</div>
                         </div>
                     </div>
-                    <div class="mt-2.5 pt-1.5 border-t border-emerald-200/50 flex flex-wrap justify-between gap-x-2 gap-y-1 text-[11px]">
-                        <button onclick="openEditModal('${member.id}')" class="text-blue-600 hover:text-blue-800 font-medium"><i class="fa-regular fa-pen-to-square"></i> แก้ไข</button>
-                        <button onclick="openAddModal('${member.id}', null, 'spouse')" class="text-rose-600 hover:text-rose-700 font-medium"><i class="fa-solid fa-heart-circle-plus"></i> +คู่สมรส</button>
-                        <button onclick="openAddModal('${member.id}', null, 'blood')" class="text-emerald-600 hover:text-emerald-700 font-bold block w-full text-center mt-1 bg-emerald-50 rounded py-0.5 hover:bg-emerald-100 transition"><i class="fa-solid fa-child-reaching"></i> + เพิ่มลูก</button>
+                    <div class="text-[10px] space-y-0.5 text-slate-600 border-t pt-1 border-slate-200/60">
+                        <div><b>ชื่อเล่น:</b> ${m.nickname || '-'}</div>
+                        <div class="truncate"><b>เบอร์:</b> ${m.phone || '-'}</div>
+                    </div>
+                    <div class="mt-2 pt-1 border-t border-slate-200/60 flex justify-between text-[10px]">
+                        <button onclick="openEditModal('${m.id}')" class="text-indigo-600 font-medium hover:underline">แก้ไข</button>
+                        ${m.type !== 'spouse' ? `
+                            <button onclick="openAddModal('${m.id}', null, 'spouse')" class="text-rose-500 font-medium hover:underline">+คู่สมรส</button>
+                            <button onclick="openAddModal('${m.gender==='male'?m.id:''}', '${m.gender==='female'?m.id:''}', 'blood')" class="text-emerald-600 font-bold hover:underline">+ลูก</button>
+                        ` : ''}
+                        <button onclick="deleteMember('${m.id}')" class="text-red-500 font-medium hover:underline"><i class="fa-regular fa-trash-can"></i></button>
                     </div>
                 </div>
             `;
-            
-            // นำคู่สมรสมาประกบข้างขวา (หากมีคู่)
-            html += spousesHtml;
-            html += `</div>`;
-
-            // แตกกิ่งก้านสาขาลงไปชั้นลูกหลานเหลนโหลนแบบลึกกี่ชั้นก็ได้ (Recursive Drawing)
-            if (children.length > 0) {
-                html += '<ul>';
-                children.forEach(child => {
-                    html += renderMemberNode(child);
-                });
-                html += '</ul>';
-            }
-            
-            html += `</li>`;
-            return html;
         }
 
-        // 5. เปิดหน้าต่างโมดอลสร้างสมาชิกใหม่ (CREATE)
+        // หน้าต่างเพิ่มสมาชิก (มีช่องเพศให้เลือกแล้ว)
         function openAddModal(fatherId, motherId, type) {
-            let modalTitle = '👶 เพิ่มผู้สืบทอดสายเลือด (รุ่นลูก/หลาน/เหลน)';
-            if (type === 'spouse') modalTitle = '💞 เพิ่มสะใภ้ หรือ ลูกเขย เข้ามาในสายตระกูล';
-            if (!fatherId && !motherId && type === 'blood') modalTitle = '🌳 บันทึกข้อมูล "ต้นตระกูลหลัก" (ผู้อาวุโสสูงสุด)';
-
             Swal.fire({
-                title: modalTitle,
+                title: type === 'spouse' ? '💞 เพิ่มคู่สมรสใหม่' : '👶 เพิ่มทายาท (สายลูก)',
                 html: `
-                    <div class="text-left space-y-1 text-xs text-slate-500 px-1">
-                        <label class="block font-medium text-slate-600">ชื่อจริง</label>
-                        <input id="swal-firstName" class="swal2-input swal-field" placeholder="กรอกชื่อต้น">
-                        
-                        <label class="block font-medium text-slate-600 mt-2">นามสกุล</label>
-                        <input id="swal-lastName" class="swal2-input swal-field" placeholder="กรอกนามสกุล (เว้นไว้ได้สำหรับเขย/สะใภ้)">
-                        
-                        <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div class="text-left text-xs space-y-1.5 p-1">
+                        <label class="font-bold text-slate-700">เพศสภาพ</label>
+                        <select id="swal-gender" class="swal2-input swal-field text-sm">
+                            <option value="male">ชาย (Male)</option>
+                            <option value="female">หญิง (Female)</option>
+                        </select>
+                        <label class="font-bold text-slate-700 block mt-2">ชื่อจริง</label>
+                        <input id="swal-firstName" class="swal2-input swal-field" placeholder="ชื่อจริง">
+                        <label class="font-bold text-slate-700 block">นามสกุล</label>
+                        <input id="swal-lastName" class="swal2-input swal-field" placeholder="นามสกุล">
+                        <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block font-medium text-slate-600">ชื่อเล่น</label>
+                                <label class="font-bold text-slate-700">ชื่อเล่น</label>
                                 <input id="swal-nickname" class="swal2-input swal-field" placeholder="ชื่อเล่น">
                             </div>
                             <div>
-                                <label class="block font-medium text-slate-600">วัน/เดือน/ปี เกิด</label>
+                                <label class="font-bold text-slate-700">วันเกิด</label>
                                 <input id="swal-birthDate" type="date" class="swal2-input swal-field">
                             </div>
                         </div>
-
-                        <label class="block font-medium text-slate-600 mt-2">เบอร์โทรศัพท์ติดต่อ</label>
-                        <input id="swal-phone" type="tel" class="swal2-input swal-field" placeholder="เช่น 0812345678">
-
-                        <label class="block font-medium text-slate-600 mt-2">ที่อยู่ปัจจุบัน</label>
-                        <input id="swal-address" class="swal2-input swal-field" placeholder="บ้านเลขที่ อำเภอ จังหวัด">
-
-                        <label class="block font-medium text-slate-600 mt-2">Link รูปภาพประจำตัว (URL)</label>
-                        <input id="swal-imageUrl" class="swal2-input swal-field" placeholder="https://example.com/photo.jpg">
+                        <label class="font-bold text-slate-700 block">เบอร์โทร</label>
+                        <input id="swal-phone" class="swal2-input swal-field" placeholder="เบอร์ติดต่อ">
+                        <label class="font-bold text-slate-700 block">ที่อยู่</label>
+                        <input id="swal-address" class="swal2-input swal-field" placeholder="ที่อยู่ปัจจุบัน">
+                        <label class="font-bold text-slate-700 block">URL รูปภาพ</label>
+                        <input id="swal-imageUrl" class="swal2-input swal-field" placeholder="ลิงก์รูปภาพ">
                     </div>
                 `,
-                focusConfirm: false,
                 showCancelButton: true,
-                confirmButtonText: '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล',
+                confirmButtonText: 'บันทึก',
                 cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: '#059669',
-                cancelButtonColor: '#94a3b8',
+                confirmButtonColor: '#0f766e',
                 preConfirm: () => {
-                    const firstName = document.getElementById('swal-firstName').value.trim();
-                    if (!firstName) {
-                        Swal.showValidationMessage('จำเป็นต้องใส่ชื่อจริงอย่างน้อย 1 ช่อง');
-                        return false;
-                    }
+                    const fn = document.getElementById('swal-firstName').value.trim();
+                    if (!fn) return Swal.showValidationMessage('กรุณากรอกชื่อจริง');
                     return {
-                        firstName: firstName,
+                        firstName: fn,
                         lastName: document.getElementById('swal-lastName').value.trim(),
                         nickname: document.getElementById('swal-nickname').value.trim(),
                         birthDate: document.getElementById('swal-birthDate').value,
                         address: document.getElementById('swal-address').value.trim(),
                         phone: document.getElementById('swal-phone').value.trim(),
                         imageUrl: document.getElementById('swal-imageUrl').value.trim(),
+                        gender: document.getElementById('swal-gender').value,
                         fatherId: fatherId || "",
                         motherId: motherId || "",
                         type: type,
@@ -433,185 +272,118 @@
                 }
             }).then(async (result) => {
                 if (result.isConfirmed) {
-                    showLoadingSpinner('กำลังบันทึกข้อมูลเข้าฐานข้อมูล...');
+                    showLoad('กำลังเซฟข้อมูลลง Google Sheets...');
+                    let data = result.value;
                     
-                    let payloadData = result.value;
-
-                    if (type === 'spouse' && fatherId) {
-                        payloadData.spouses = fatherId; 
+                    // กรณีสร้างคู่แต่งงาน
+                    let mainId = fatherId || motherId;
+                    if (type === 'spouse' && mainId) {
+                        data.spouses = mainId;
                     }
 
-                    try {
-                        const res = await fetch(API_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({ action: 'create', data: payloadData })
-                        });
-                        const resJson = await res.json();
-                        
-                        if (resJson.status === 'success') {
-                            if (type === 'spouse' && fatherId) {
-                                const newSpouseId = resJson.data.id;
-                                const mainMember = familyData.find(m => m.id === fatherId);
-                                if (mainMember) {
-                                    let currentSpouses = mainMember.spouses ? mainMember.spouses.split(',') : [];
-                                    currentSpouses.push(newSpouseId);
-                                    mainMember.spouses = currentSpouses.join(',');
-                                    
-                                    await fetch(API_URL, {
-                                        method: 'POST',
-                                        body: JSON.stringify({ action: 'update', data: mainMember })
-                                    });
-                                }
-                            }
-                            
-                            Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ!', text: 'เพิ่มสมาชิกใหม่เข้าสู่แผนผังแล้ว', timer: 1500, showConfirmButton: false });
-                            loadFamilyData();
-                        } else {
-                            throw new Error(resJson.message);
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'create', data: data }) });
+                    const resJson = await res.json();
+
+                    if (resJson.status === 'success' && type === 'spouse' && mainId) {
+                        const newId = resJson.data.id;
+                        const mainMember = familyData.find(m => m.id === mainId);
+                        if (mainMember) {
+                            let arr = mainMember.spouses ? mainMember.spouses.split(',') : [];
+                            arr.push(newId);
+                            mainMember.spouses = arr.join(',');
+                            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'update', data: mainMember }) });
                         }
-                    } catch (e) {
-                        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกได้: ' + e.message, 'error');
                     }
+                    Swal.close();
+                    loadFamilyData();
                 }
             });
         }
 
-        // 6. เปิดหน้าต่างโมดอลเพื่อแก้ไขข้อมูลสมาชิก (UPDATE)
-        async function openEditModal(id) {
-            const member = familyData.find(m => m.id === id);
-            if (!member) return;
-
-            let bDateFormatted = "";
-            if (member.birthDate) {
-                bDateFormatted = member.birthDate.split('T')[0];
-            }
+        // หน้าต่างแก้ไขข้อมูล (UPDATE)
+        function openEditModal(id) {
+            const m = familyData.find(x => x.id === id);
+            if (!m) return;
+            let bDate = m.birthDate ? m.birthDate.split('T')[0] : '';
 
             Swal.fire({
-                title: `📝 แก้ไขข้อมูลคุณ: ${member.firstName}`,
+                title: `📝 แก้ไขข้อมูล`,
                 html: `
-                    <div class="text-left space-y-1 text-xs text-slate-500 px-1">
-                        <label class="block font-medium text-slate-600">ชื่อจริง</label>
-                        <input id="swal-firstName" class="swal2-input swal-field" value="${member.firstName || ''}">
-                        
-                        <label class="block font-medium text-slate-600 mt-2">นามสกุล</label>
-                        <input id="swal-lastName" class="swal2-input swal-field" value="${member.lastName || ''}">
-                        
-                        <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div class="text-left text-xs space-y-1.5 p-1">
+                        <label class="font-bold text-slate-700">เพศสภาพ</label>
+                        <select id="swal-gender" class="swal2-input swal-field text-sm">
+                            <option value="male" ${m.gender==='male'?'selected':''}>ชาย (Male)</option>
+                            <option value="female" ${m.gender==='female'?'selected':''}>หญิง (Female)</option>
+                        </select>
+                        <label class="font-bold text-slate-700 block mt-2">ชื่อจริง</label>
+                        <input id="swal-firstName" class="swal2-input swal-field" value="${m.firstName||''}">
+                        <label class="font-bold text-slate-700 block">นามสกุล</label>
+                        <input id="swal-lastName" class="swal2-input swal-field" value="${m.lastName||''}">
+                        <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block font-medium text-slate-600">ชื่อเล่น</label>
-                                <input id="swal-nickname" class="swal2-input swal-field" value="${member.nickname || ''}">
+                                <label class="font-bold text-slate-700">ชื่อเล่น</label>
+                                <input id="swal-nickname" class="swal2-input swal-field" value="${m.nickname||''}">
                             </div>
                             <div>
-                                <label class="block font-medium text-slate-600">วัน/เดือน/ปี เกิด</label>
-                                <input id="swal-birthDate" type="date" class="swal2-input swal-field" value="${bDateFormatted}">
+                                <label class="font-bold text-slate-700">วันเกิด</label>
+                                <input id="swal-birthDate" type="date" class="swal2-input swal-field" value="${bDate}">
                             </div>
                         </div>
-
-                        <label class="block font-medium text-slate-600 mt-2">เบอร์โทรศัพท์ติดต่อ</label>
-                        <input id="swal-phone" type="tel" class="swal2-input swal-field" value="${member.phone || ''}">
-
-                        <label class="block font-medium text-slate-600 mt-2">ที่อยู่ปัจจุบัน</label>
-                        <input id="swal-address" class="swal2-input swal-field" value="${member.address || ''}">
-
-                        <label class="block font-medium text-slate-600 mt-2">Link รูปภาพประจำตัว (URL)</label>
-                        <input id="swal-imageUrl" class="swal2-input swal-field" value="${member.imageUrl || ''}">
+                        <label class="font-bold text-slate-700 block">เบอร์โทร</label>
+                        <input id="swal-phone" class="swal2-input swal-field" value="${m.phone||''}">
+                        <label class="font-bold text-slate-700 block">ที่อยู่</label>
+                        <input id="swal-address" class="swal2-input swal-field" value="${m.address||''}">
+                        <label class="font-bold text-slate-700 block">URL รูปภาพ</label>
+                        <input id="swal-imageUrl" class="swal2-input swal-field" value="${m.imageUrl||''}">
                     </div>
                 `,
-                focusConfirm: false,
                 showCancelButton: true,
-                confirmButtonText: '<i class="fa-solid fa-pen"></i> อัปเดตข้อมูล',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'อัปเดต',
                 preConfirm: () => {
-                    const firstName = document.getElementById('swal-firstName').value.trim();
-                    if (!firstName) {
-                        Swal.showValidationMessage('ชื่อจริงต้องระบุและห้ามเว้นว่าง');
-                        return false;
-                    }
                     return {
-                        id: member.id,
-                        firstName: firstName,
+                        id: m.id,
+                        firstName: document.getElementById('swal-firstName').value.trim(),
                         lastName: document.getElementById('swal-lastName').value.trim(),
                         nickname: document.getElementById('swal-nickname').value.trim(),
                         birthDate: document.getElementById('swal-birthDate').value,
                         address: document.getElementById('swal-address').value.trim(),
                         phone: document.getElementById('swal-phone').value.trim(),
                         imageUrl: document.getElementById('swal-imageUrl').value.trim(),
-                        fatherId: member.fatherId || "",
-                        motherId: member.motherId || "",
-                        spouses: member.spouses || "",
-                        type: member.type || "blood"
+                        gender: document.getElementById('swal-gender').value,
+                        fatherId: m.fatherId, motherId: m.motherId, spouses: m.spouses, type: m.type
                     }
                 }
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    showLoadingSpinner('กำลังอัปเดตข้อมูลบน Google Sheets...');
-                    try {
-                        const res = await fetch(API_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({ action: 'update', data: result.value })
-                        });
-                        const resJson = await res.json();
-                        if (resJson.status === 'success') {
-                            Swal.fire({ icon: 'success', title: 'อัปเดตสำเร็จ!', text: 'ปรับปรุงข้อมูลเรียบร้อยแล้ว', timer: 1200, showConfirmButton: false });
-                            loadFamilyData();
-                        } else {
-                            throw new Error(resJson.message);
-                        }
-                    } catch (e) {
-                        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลปรับปรุงได้: ' + e.message, 'error');
-                    }
+            }).then(async (res) => {
+                if (res.isConfirmed) {
+                    showLoad('กำลังบันทึกข้อมูลแก้ไข...');
+                    await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'update', data: res.value }) });
+                    Swal.close();
+                    loadFamilyData();
                 }
             });
         }
 
-        // 7. ฟังก์ชันลบสมาชิกออกจากเครือญาติ (DELETE)
+        // ลบสมาชิก (DELETE)
         function deleteMember(id) {
-            const member = familyData.find(m => m.id === id);
-            if (!member) return;
-
             Swal.fire({
-                title: 'ยืนยันการลบสมาชิก?',
-                text: `คุณแน่ใจหรือไม่ที่จะลบข้อมูลของคุณ "${member.firstName} ${member.lastName || ''}" ออกจากฐานข้อมูลถาวร?`,
+                title: 'ยืนยันลบข้อมูล?',
+                text: "รายชื่อบุคคลนี้จะหายไปจากผังตระกูล",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#94a3b8',
-                confirmButtonText: 'ใช่, ฉันต้องการลบ!',
-                cancelButtonText: 'ยกเลิก'
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    showLoadingSpinner('ระบบกำลังนำรายชื่อออกและจัดเรียงโครงสร้างใหม่...');
-                    try {
-                        const res = await fetch(API_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({ action: 'delete', id: id })
-                        });
-                        const resJson = await res.json();
-                        if (resJson.status === 'success') {
-                            Swal.fire({ icon: 'success', title: 'ลบเรียบร้อย!', text: 'ข้อมูลบุคคลนี้ถูกลบเรียบร้อยแล้ว', timer: 1200, showConfirmButton: false });
-                            loadFamilyData();
-                        } else {
-                            throw new Error(resJson.message);
-                        }
-                    } catch (e) {
-                        Swal.fire('ผิดพลาด', 'เกิดปัญหาขณะพยายามลบข้อมูล: ' + e.message, 'error');
-                    }
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'ใช่, ลบเลย'
+            }).then(async (res) => {
+                if (res.isConfirmed) {
+                    showLoad('กำลังทำรายการลบ...');
+                    await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: id }) });
+                    Swal.close();
+                    loadFamilyData();
                 }
             });
         }
 
-        function showLoadingSpinner(msg) {
-            Swal.fire({
-                title: msg,
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-        }
-
+        function showLoad(msg) { Swal.fire({ title: msg, allowOutsideClick: false, didOpen: () => Swal.showLoading() }); }
+        
         window.onload = loadFamilyData;
     </script>
 </body>
