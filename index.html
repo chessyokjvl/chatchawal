@@ -11,7 +11,6 @@
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; }
         
-        /* ─── โครงสร้างกระดานสำหรับรองรับผังตระกูลขนาดใหญ่ ─── */
         .tree-board {
             overflow-x: auto;
             overflow-y: auto;
@@ -19,7 +18,7 @@
             background-color: #f8fafc;
             min-height: 65vh;
             text-align: center;
-            white-space: nowrap; /* ล็อคไม่ให้สมาชิกรุ่นเดียวกันเด้งตกบรรทัด */
+            white-space: nowrap;
         }
 
         .tree-container {
@@ -28,7 +27,7 @@
         }
 
         .tree-container ul {
-            padding-top: 35px;
+            padding-top: 30px;
             position: relative;
             display: flex;
             justify-content: center;
@@ -37,63 +36,68 @@
             list-style: none;
         }
 
-        /* เส้นตั้งเชื่อมโยงจากพ่อแม่ลงไปหารุ่นลูก */
+        /* เส้นดิ่งหลักทิ้งลงมาจากตรงกลางของรุ่นก่อนหน้า */
         .tree-container ul::before {
             content: '';
             position: absolute; top: 0; left: 50%;
             border-left: 2px solid #94a3b8;
-            width: 0; height: 35px;
+            width: 0; height: 30px;
         }
 
         .tree-container li {
             text-align: center;
             position: relative;
-            padding: 35px 12px 0 12px;
+            padding: 30px 10px 0 10px;
             display: inline-block;
             vertical-align: top;
         }
 
-        /* เส้นนอนเชื่อมความสัมพันธ์พี่น้อง */
+        /* ─── ระบบเส้นเชื่อมโยงแบบเจาะจงกล่องลูกสายเลือด ─── */
+        /* เส้นแนวนอนบนหัวของรายการลูกพี่น้อง */
         .tree-container li::before, .tree-container li::after {
             content: '';
             position: absolute; top: 0; right: 50%;
             border-top: 2px solid #94a3b8;
-            width: 50%; height: 35px;
+            width: 50%; height: 30px;
         }
         .tree-container li::after {
             right: auto; left: 50%;
-            border-left: 2px solid #94a3b8;
+            border-left: 2px solid #94a3b8; /* เส้นดิ่งชี้ลงหาตำแหน่งกล่อง */
         }
+        
+        /* จัดตำแหน่งให้เส้นดิ่งตกลงตรงกึ่งกลางของ 'การ์ดลูกสายเลือด' พอดี (ไม่ใช่ตรงกลางระหว่างคู่) */
+        .tree-container li::after {
+            left: 100px; /* ขยับเส้นดิ่งให้ตรงสอดคล้องกับขนาดการ์ดสายเลือดตัวแรก */
+        }
+
         .tree-container li:only-child::after, .tree-container li:only-child::before { display: none; }
         .tree-container li:only-child { padding-top: 0; }
         .tree-container li:first-child::before, .tree-container li:last-child::after { border: 0 none; }
         .tree-container li:last-child::before { border-right: 2px solid #94a3b8; border-radius: 0 6px 0 0; }
         .tree-container li:first-child::after { border-radius: 6px 0 0 0; }
 
-        /* บล็อกคู่แต่งงานร่วม (Multi-Spouse Container) */
-        .multi-spouse-row {
+        /* จัดหน้าตาบล็อกคู่แต่งงานให้แยกการ์ด แต่เกาะกลุ่มกันด้วยเส้นแต่งงานหลังการ์ด */
+        .family-node-group {
             display: inline-flex;
             align-items: flex-start;
-            justify-content: center;
-            gap: 25px;
+            gap: 0px;
+            position: relative;
         }
 
-        .spouse-couple-block {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
+        /* เส้นเชื่อมสมรสแนวนอนระหว่างการ์ดลูก และ การ์ดเขย/สะใภ้ */
+        .marriage-line {
+            width: 20px;
+            height: 2px;
+            background-color: #cbd5e1;
+            align-self: center;
+            position: relative;
         }
-
-        .couple-cards-box {
-            display: inline-flex;
-            align-items: flex-start;
-            background-color: #ffffff;
-            padding: 8px;
-            border-radius: 18px;
-            border: 2px dashed #cbd5e1;
-            gap: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-            white-space: normal;
+        /* ใส่หัวใจดวงเล็กๆ ตรงเส้นเชื่อมสมรส */
+        .marriage-line::after {
+            content: '❤️';
+            font-size: 8px;
+            position: absolute;
+            top: -6px; left: 3px;
         }
 
         .member-card {
@@ -103,7 +107,24 @@
             text-align: left;
             font-size: 11px;
             background: #fff;
-            display: inline-block;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ไฮไลท์พิเศษแบ่งสีขอบเพื่อให้แยกแยะสายเลือด (สายตรงขอบทึบ เขยสะใภ้ขอบประ) */
+        .blood-line-border { border: 2px solid #94a3b8; }
+        .spouse-line-border { border: 2px dashed #cbd5e1; }
+
+        .multi-spouse-row {
+            display: inline-flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 40px;
+        }
+        .spouse-couple-block {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
         }
         .swal-field { width: 100% !important; margin: 5px 0 !important; }
     </style>
@@ -116,7 +137,7 @@
                 <div class="p-2 bg-emerald-800 rounded-xl"><i class="fa-solid fa-tree text-2xl text-emerald-300"></i></div>
                 <div>
                     <h1 class="text-xl font-bold tracking-wide">ระบบรวบญาติ (Family Tree Web App)</h1>
-                    <p class="text-xs text-emerald-200/80">ระบบบันทึก จัดการ และแสดงผังเครือญาติอัตโนมัติแบบกำหนดสายสัมพันธ์ร่วม</p>
+                    <p class="text-xs text-emerald-200/80">แก้ไข: ล็อคเส้นดิ่งลงตรงกลุ่มทายาทสายเลือด | เขย-สะใภ้ต่อเชื่อมด้านข้าง</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -130,46 +151,15 @@
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
-            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><i class="fa-solid fa-users text-xl"></i></div>
-            <div>
-                <div class="text-xs text-slate-400 font-medium">สมาชิกทั้งหมด</div>
-                <div class="text-xl font-bold text-slate-700" id="stat-total">- คน</div>
-            </div>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
-            <div class="p-3 bg-sky-50 text-sky-600 rounded-xl"><i class="fa-solid fa-droplet text-xl"></i></div>
-            <div>
-                <div class="text-xs text-slate-400 font-medium">สายเลือดตรง</div>
-                <div class="text-xl font-bold text-slate-700" id="stat-blood">- คน</div>
-            </div>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
-            <div class="p-3 bg-rose-50 text-rose-600 rounded-xl"><i class="fa-solid fa-heart text-xl"></i></div>
-            <div>
-                <div class="text-xs text-slate-400 font-medium">เขย / สะใภ้</div>
-                <div class="text-xl font-bold text-slate-700" id="stat-spouse">- คน</div>
-            </div>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
-            <div class="p-3 bg-amber-50 text-amber-600 rounded-xl"><i class="fa-solid fa-database text-xl"></i></div>
-            <div>
-                <div class="text-xs text-slate-400 font-medium">สถานะ Database</div>
-                <div class="text-xs font-bold text-emerald-600 flex items-center gap-1" id="stat-db">เชื่อมต่อแล้ว</div>
-            </div>
-        </div>
-    </div>
-
     <main class="flex-grow p-4 md:p-6 container mx-auto">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-4 bg-slate-50 border-b border-slate-200 text-xs text-slate-500">
-                <i class="fa-solid fa-arrows-left-right text-indigo-500 mr-1"></i> รองรับการสไลด์หน้าจอแนวราบ | ระบบจัดเรียงสายสัมพันธ์แบบพิเศษแยกกลุ่มบุตรตามมารดาและบิดาได้อย่างแม่นยำ
+                <i class="fa-solid fa-code-branch text-emerald-600 mr-1"></i> <b>วิธีดูผัง:</b> เส้นดิ่งจากด้านบนจะชี้ตรงลงมาที่ <b>"ลูกสายเลือดตรง (ขอบทึบ)"</b> เสมอ ส่วน <b>"เขย/สะใภ้ (ขอบประ)"</b> จะแยกอยู่ด้านข้างและเชื่อมกันด้วยเส้นสมรสมีหัวใจดวงเล็กๆ คั่นครับ
             </div>
             
             <div class="tree-board">
                 <div class="tree-container" id="tree-root">
-                    <p class="text-slate-400 text-sm mt-10">กำลังจัดลำดับและขึ้นรูปผังเครือญาติ...</p>
+                    <p class="text-slate-400 text-sm mt-10">กำลังประกอบโครงสร้างและจัดวางตําแหน่งเส้นเชื่อมโยง...</p>
                 </div>
             </div>
         </div>
@@ -184,15 +174,10 @@
             try {
                 const response = await fetch(API_URL);
                 familyData = await response.json();
-                
-                document.getElementById('stat-total').innerText = familyData.length + " คน";
-                document.getElementById('stat-blood').innerText = familyData.filter(m => m.type !== 'spouse').length + " คน";
-                document.getElementById('stat-spouse').innerText = familyData.filter(m => m.type === 'spouse').length + " คน";
-                
                 renderSpecialTree();
             } catch (error) {
                 console.error(error);
-                Swal.fire('การเชื่อมต่อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error');
+                Swal.fire('การเชื่อมต่อผิดพลาด', 'ไม่สามารถเข้าถึงฐานข้อมูลได้', 'error');
             }
         }
 
@@ -201,15 +186,11 @@
             container.innerHTML = '';
             globalRenderedIds.clear();
 
-            if (familyData.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-sm mt-10">ไม่พบข้อมูลสมาชิก</p>`;
-                return;
-            }
+            if (familyData.length === 0) return;
 
-            // ค้นหาผู้ก่อตั้งตระกูลรุ่นที่ 1 (สุรสิงห์)
             const surasingh = familyData.find(m => m.firstName.includes("สุรสิงห์"));
             if (!surasingh) {
-                container.innerHTML = `<p class="text-slate-400 text-sm mt-10">ไม่พบชื่อ สุรสิงห์ ในระบบข้อมูล</p>`;
+                container.innerHTML = `<p class="text-slate-400 text-sm mt-10">ไม่พบข้อมูล สุรสิงห์ ในระบบ</p>`;
                 return;
             }
 
@@ -219,20 +200,17 @@
             container.innerHTML = html;
         }
 
-        // ฟังก์ชันหลักในการวาด Node และตรวจสอบโครงสร้างคู่สมรสซ้ำ
         function buildMemberNode(member) {
-            // ดึงข้อมูลคู่แต่งงานทั้งหมดของบุคคลนี้
             let spouses = familyData.filter(m => m.id !== member.id && (
                 (member.spouses && member.spouses.split(',').map(s=>s.trim()).includes(m.id)) ||
                 (m.spouses && m.spouses.split(',').map(s=>s.trim()).includes(member.id))
             ));
 
-            // ─── กรณีที่ 1: เคสพิเศษแต่งงานหลายครั้ง (มีคู่สมรสตั้งแต่ 2 คนขึ้นไป เช่น สุรสิงห์ และ นภสิญจน์) ───
+            // ─── เคสแต่งงานหลายครั้ง (สุรสิงห์ หรือ นภสิญจน์) ───
             if (spouses.length >= 2) {
                 let nodeHtml = `<li>`;
                 nodeHtml += `<div class="multi-spouse-row">`;
 
-                // เจาะจงลำดับคู่แต่งงานเพื่อให้การแสดงผลเรียงจาก ซ้าย ไป ขวา ตามสายลำดับจริง
                 let orderedSpouses = [...spouses];
                 if (member.firstName.includes("สุรสิงห์")) {
                     let wilaiporn = spouses.find(s => s.firstName.includes("วไลพร"));
@@ -244,16 +222,15 @@
                     if (ying && nab) orderedSpouses = [ying, nab];
                 }
 
-                // แตกกล่องย่อยของแต่ละคู่สมรสเพื่อวางตำแหน่งลูกให้ตรงกับแม่/พ่อที่ถูกต้อง
-                orderedSpouses.forEach((spouse, index) => {
+                orderedSpouses.forEach((spouse) => {
                     nodeHtml += `<div class="spouse-couple-block">`;
-                    nodeHtml += `  <div class="couple-cards-box">`;
-                    // วางคู่สมรสทางซ้าย และ วางตัวหลัก (เช่น สุรสิงห์ / นภสิญจน์) ทางขวาเพื่อให้ไหลเชื่อมกันต่อเนื่อง
-                    nodeHtml += createCardHtml(spouse);
-                    nodeHtml += createCardHtml(member, true); // มาร์คเป็นร่างโคลนเพื่อไม่ให้งงปุ่มกดแก้ไข
+                    nodeHtml += `  <div class="family-node-group">`;
+                    
+                    // บังคับทิศทางคู่: วไลพร(ซ้าย) -- สุรสิงห์(ขวา) | พี่หญิง(ซ้าย) -- นภสิญจน์(ขวา)
+                    // เพื่อให้เส้นดิ่งไหลลงมาเจาะจงที่ตัวหลักฝั่งสายเลือดได้คงที่
+                    nodeHtml += createCardHtml(spouse) + `<div class="marriage-line"></div>` + createCardHtml(member, true);
                     nodeHtml += `  </div>`;
 
-                    // ค้นหาลูกเฉพาะของคู่นี้
                     let children = [];
                     if (member.firstName.includes("สุรสิงห์")) {
                         if (spouse.firstName.includes("วไลพร")) {
@@ -265,16 +242,11 @@
                         if (spouse.firstName.includes("หญิง")) {
                             children = familyData.filter(m => ["ลูกศร"].some(name => m.firstName.includes(name)));
                         }
-                    } else {
-                        // แบบไดนามิกปกติสำหรับเคสทั่วไป
-                        children = familyData.filter(m => (m.fatherId === member.id && m.motherId === spouse.id) || (m.fatherId === spouse.id && m.motherId === member.id));
                     }
 
                     if (children.length > 0) {
                         nodeHtml += `<ul>`;
-                        children.forEach(child => {
-                            nodeHtml += buildMemberNode(child);
-                        });
+                        children.forEach(child => { nodeHtml += buildMemberNode(child); });
                         nodeHtml += `</ul>`;
                     }
                     nodeHtml += `</div>`;
@@ -285,22 +257,29 @@
                 return nodeHtml;
             }
 
-            // ─── กรณีที่ 2: เคสแต่งงานปกติ 1 คน หรือยังไม่มีคู่สมรส (เช่น สินีนาฏ--วีระวุฒิ / ชื่นนภา--พิชญ์พงศ์) ───
-            let coupleHtml = `<div class="couple-cards-box">`;
-            coupleHtml += createCardHtml(member);
-            spouses.forEach(s => { coupleHtml += createCardHtml(s); });
+            // ─── เคสทั่วไป (แต่งงานคนเดียว หรือยังไม่แต่งงาน) ───
+            let coupleHtml = `<div class="family-node-group">`;
+            
+            if (member.type === 'spouse') {
+                // หากตัวมันเองผ่านการกรองว่าเป็นเขย/สะใภ้ (ไม่น่าเกิดจาก Logic บังคับลูก แต่ดักไว้ก่อน)
+                coupleHtml += createCardHtml(member);
+            } else {
+                // ตัวหลักเป็นลูกสายเลือดตรง (วางไว้ทางซ้าย เพื่อรับเส้นดิ่งจากด้านบน)
+                coupleHtml += createCardHtml(member);
+                // เขย/สะใภ้ วางต่อเชื่อมออกไปทางขวา
+                spouses.forEach(s => {
+                    coupleHtml += `<div class="marriage-line"></div>` + createCardHtml(s);
+                });
+            }
             coupleHtml += `</div>`;
 
-            // ดึงข้อมูลลูกหลานระดับถัดไป
             const parentIds = [member.id, ...spouses.map(s => s.id)];
             const children = familyData.filter(m => m.id !== member.id && (parentIds.includes(m.fatherId) || parentIds.includes(m.motherId)));
 
             let nodeHtml = `<li>${coupleHtml}`;
             if (children.length > 0) {
                 nodeHtml += `<ul>`;
-                children.forEach(child => {
-                    nodeHtml += buildMemberNode(child);
-                });
+                children.forEach(child => { nodeHtml += buildMemberNode(child); });
                 nodeHtml += `</ul>`;
             }
             nodeHtml += `</li>`;
@@ -310,40 +289,46 @@
 
         function createCardHtml(m, isClone = false) {
             const isMale = m.gender === 'male';
-            const bgClass = isMale ? 'bg-sky-50 border-sky-300 text-sky-900' : 'bg-rose-50 border-rose-300 text-rose-900';
+            const bgClass = isMale ? 'bg-sky-50 text-sky-900' : 'bg-rose-50 text-rose-900';
+            
+            // แยกแยะสไตล์ของเส้นขอบ: สายเลือดตรง = เส้นทึบเข้ม | เขยสะใภ้ = เส้นประ
+            const borderClass = (m.type === 'spouse') ? 'spouse-line-border' : 'blood-line-border';
             const defaultImg = isMale ? 'https://cdn-icons-png.flaticon.com/512/4128/4128176.png' : 'https://cdn-icons-png.flaticon.com/512/4128/4128246.png';
 
             return `
-                <div class="member-card border ${bgClass} shadow-sm">
+                <div class="member-card ${borderClass} ${bgClass} shadow-sm">
                     <div class="flex items-center gap-2 mb-1">
                         <img src="${m.imageUrl || defaultImg}" class="w-8 h-8 rounded-full border bg-white object-cover" onerror="this.src='${defaultImg}'">
                         <div class="truncate w-24">
                             <div class="font-bold text-[11px] truncate">
-                                <span class="opacity-75 text-[9px] block font-normal text-slate-500">${m.prefix || ''}</span>
+                                <span class="opacity-75 text-[9px] block font-normal text-slate-400">${m.prefix || ''}</span>
                                 ${m.firstName}
                             </div>
                         </div>
                     </div>
-                    <div class="text-[9px] text-slate-600 border-t pt-1 border-slate-200/60">
+                    <div class="text-[9px] text-slate-500 border-t pt-1 border-slate-200/60 flex justify-between items-center">
                         <div><b>ชื่อเล่น:</b> ${m.nickname || '-'}</div>
+                        <span class="text-[8px] px-1 bg-white/70 rounded border font-medium">
+                            ${m.type === 'spouse' ? 'เขย/สะใภ้' : 'สายเลือด'}
+                        </span>
                     </div>
                     ${!isClone ? `
                     <div class="mt-1.5 pt-1 border-t border-slate-200/60 flex justify-between text-[9px]">
                         <button onclick="openEditModal('${m.id}')" class="text-indigo-600 hover:underline">แก้ไข</button>
                         ${m.type !== 'spouse' ? `
-                            <button onclick="openAddModal('${m.id}', null, 'spouse')" class="text-rose-500 hover:underline">+คู่</button>
+                            <button onclick="openAddModal('${m.id}', null, 'spouse')" class="text-rose-500 hover:underline">+คู่สมรส</button>
                             <button onclick="openAddModal('${m.gender==='male'?m.id:''}', '${m.gender==='female'?m.id:''}', 'blood')" class="text-emerald-600 font-bold hover:underline">+ลูก</button>
                         ` : ''}
                     </div>
-                    ` : '<div class="text-[9px] text-center text-slate-400 pt-1">แกนเชื่อมสายตระกูล</div>'}
+                    ` : '<div class="text-[8px] text-center text-slate-400 pt-0.5">แกนเชื่อมสายตรง</div>'}
                 </div>
             `;
         }
 
-        // ฟังก์ชันระบบเพิ่มข้อมูล (CRUD)
+        // ระบบ CRUD เสริมจากโครงสร้างระบบเดิม
         function openAddModal(fatherId, motherId, type) {
             Swal.fire({
-                title: type === 'spouse' ? '💞 เพิ่มข้อมูลคู่สมรส' : '👶 เพิ่มข้อมูลทายาทสายตรง',
+                title: type === 'spouse' ? '💞 เพิ่มข้อมูลเขย/สะใภ้' : '👶 เพิ่มข้อมูลทายาท',
                 html: `
                     <div class="text-left text-xs space-y-1.5 p-1">
                         <div class="grid grid-cols-2 gap-2">
@@ -366,7 +351,7 @@
                 confirmButtonColor: '#0f4c3a',
                 preConfirm: () => {
                     const fn = document.getElementById('swal-firstName').value.trim();
-                    if (!fn) return Swal.showValidationMessage('โปรดกรอกชื่อจริง');
+                    if (!fn) return Swal.showValidationMessage('โปรดระบุชื่อจริง');
                     return {
                         prefix: document.getElementById('swal-prefix').value,
                         firstName: fn,
